@@ -22,8 +22,8 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
   Y <- 1*(X %*% beta >= epsilon) 
   
   # Clean up outputs 
-  out <- data.frame(Y, X, epsilon) 
-  names(out) <- c("y", paste0("x", seq(1, k)), "eps")
+  out <- data.frame(Y, X) 
+  names(out) <- c("y", paste0("x", seq(1, k)))
   
   model.specs <- list('beta' = beta,
                       'regressors' = k,
@@ -32,6 +32,38 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
                       'X.mu' = X.mu,
                       'X.sigma' = X.sigma)
   
-  return(list(out = out, model.specs = model.specs))
+  return(list(df = out, eps = epsilon, model.specs = model.specs))
+}
+
+
+est.ML <- function(data) {
+  est <- glm(formula = y ~ . - 1, 
+                family = binomial(link = "probit"), 
+                data = data)
+  
+  # I'm coding it as a list to allow us considering SEs later
+  results <- list(beta.hat = est$coefficients)
+  return(results)
+}
+
+est.GMM <- function(data, type = c("mom","2step","CUE")) {
+  
+  
+  results <- list(beta.hat = est$coefficients)
+  return(results)
+}
+
+est.ALL <- function() {
+  ## ML probit model
+  
+  ## Method of moments estimator
+  
+  ## Two-step GMM
+  
+  ## Two-step efficient GMM
+  
+  ## CUE
+  
+  ## EL
 }
 
