@@ -58,11 +58,11 @@ moments_mom <- function(theta, data) {
 
   # Get a vector of the sample moments for each moment condition
   G <- map_dfc(
-    names(X),
-    function(ii) {
-      (X[ii] * eps)
-    }
-  )
+        names(X),
+          function(ii) {
+            (X[ii] * eps)
+          }
+        )
 
   # Return n*k matrix, k is number of moments/regressors
   as.matrix(G)
@@ -71,7 +71,7 @@ moments_mom <- function(theta, data) {
 
 
 est.GMM <- function(data, type = "twoStep") {
-  stopifnot(type %in% c("mom", "twoStep", "cue"))
+  stopifnot(type %in% c("mom", "twoStep", "cue", "EL"))
 
   # Initialise with linear regression
   init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()
@@ -83,7 +83,9 @@ est.GMM <- function(data, type = "twoStep") {
   } else if (type %in% c("cue", "twoStep")) {
     moments <- moments_two_step
     est <- gmm(g = moments, x = data, init, type = type)
-  } 
+  } else if (type == "EL"){
+    stop("NOT YET IMPLEMENTED")
+  }
 
   list(beta.hat = est$coefficients)
 }

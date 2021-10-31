@@ -22,7 +22,7 @@ source(file.path(dir,"gmm_funcs.R"))
 ###############################################################################
 set.seed(8894)
 
-n <- 5000
+n <- 10000
 k <- 5
 
 data.obj <- gen_data(k = k, n = n)
@@ -30,15 +30,18 @@ data.df <- data.obj$df
 beta <- data.obj$model.specs$beta
 
 ## Maximum likelihood
-ml <- est.ML(data.df)
+ml   <- est.ML(data.df)
 
 ## Method of moments
-mom <- est.GMM(data.df, type = "mom")
+mom  <- est.GMM(data.df, type = "mom")
 
 ## Twostep GMM
 gmm2 <- est.GMM(data.df, type = "twoStep")
 
 ## CUE
-cue <- est.GMM(data.df, type = "cue")
+cue  <- est.GMM(data.df, type = "cue")
+
+## EL
+cue  <- est.GMM(data.df, type = "EL")
 
 
