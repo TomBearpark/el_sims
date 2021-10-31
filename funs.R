@@ -46,19 +46,13 @@ est.ML <- function(data) {
   return(results)
 }
 
-est.GMM <- function(data, type = c("mom","2step","CUE")) {
-  
-  
-  results <- list(beta.hat = est$coefficients)
-  return(results)
-}
 
 est.ALL <- function() {
   ## ML probit model
   
   ## Method of moments estimator
   
-  ## Two-step GMM
+  ## 1-step GMM with I
   
   ## Two-step efficient GMM
   

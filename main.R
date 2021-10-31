@@ -7,24 +7,38 @@ theme_set(theme_bw())
 # Set directories
 user <- Sys.getenv("USER")
 if( user == "tombearpark"){
-  dir <- '/Users/tombearpark/Documents/GitHub/metricsfolks/ECO513/psets/ps2/'
+  dir <- file.path('/Users/tombearpark/Documents/GitHub/el_sims/')
 } else {
   dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\'
 } 
 
-fig_loc <- paste0(dir, "fig/")
-tab_loc <- paste0(dir, "tab/")
+fig_loc <- file.path(dir, "fig/")
+tab_loc <- file.path(dir, "tab/")
 
 # Load auxiliary funs
-source(paste0(dir,"funs.R"))
+source(file.path(dir,"funs.R"))
+source(file.path(dir,"gmm_funcs.R"))
 
 ###############################################################################
 set.seed(8894)
-n <- 10000
-k <- 10
+
+n <- 5000
+k <- 5
+
 data.obj <- gen_data(k = k, n = n)
+data.df <- data.obj$df
+beta <- data.obj$model.specs$beta
 
+## Maximum likelihood
+ml <- est.ML(data.df)
 
-est.ML(data.obj$df)
-data.obj$model.specs$beta
+## Method of moments
+mom <- est.GMM(data.df, type = "mom")
+
+## Twostep GMM
+gmm2 <- est.GMM(data.df, type = "twoStep")
+
+## CUE
+cue <- est.GMM(data.df, type = "cue")
+
 
