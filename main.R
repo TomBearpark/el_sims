@@ -1,7 +1,7 @@
 ###############################################################################
 ## Load stuff
 if(!require(pacman)) install.packages('pacman')
-pacman::p_load('MASS', 'tidyverse', 'gmm', 'doParallel','doRNG', 'furrr', 'tictoc')
+pacman::p_load('MASS', 'tidyverse', 'gmm', 'furrr', 'tictoc')
 theme_set(theme_bw())
 
 ## TO do - set an out_dir outside of github so we don't save huge files there 
@@ -68,9 +68,9 @@ run_sim <- function(i, k, n){
          ) 
 }
 
-ncores <- 8
+ncores <- 50
 plan(multisession, workers = ncores)
-results <- future_map_dfr(1:8, run_sim, k = k, n = n, 
+results <- future_map_dfr(1:1000, run_sim, k = k, n = n, 
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
 
