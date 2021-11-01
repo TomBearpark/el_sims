@@ -68,10 +68,8 @@ run_sim <- function(i, k, n){
          ) 
 }
 
-# run_sim(i = 1, k = k, n = n)
-
-
-plan(multisession, workers = 8)
+ncores <- 8
+plan(multisession, workers = ncores)
 results <- future_map_dfr(1:8, run_sim, k = k, n = n, 
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
@@ -79,9 +77,9 @@ results <- future_map_dfr(1:8, run_sim, k = k, n = n,
 write_csv(results, file = file.path(tab_loc, 
                                     paste0("sim_k", k, "_n", n, ".csv")))
 
-# results %>% 
-#   mutate(across(ml:el, ~.x-beta)) %>% 
-#   pivot_longer(cols = ml:el) %>% 
-#   ggplot() + 
-#   geom_density(aes(x = value)) + 
-#   facet_wrap(~name, scales="free")
+# results %>%
+#   mutate(across(ml:el, ~.x-beta)) %>%
+#   pivot_longer(cols = ml:el) %>%
+#   ggplot() +
+#   geom_density(aes(x = value, color = var)) +
+#   facet_wrap(vars(name))
