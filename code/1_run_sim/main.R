@@ -88,10 +88,12 @@ run_study <- function(n, k, X.sigma, rho = 0,
 }
 
 # # Naive first step
-# run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
+run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
 run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
 
-# run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.1, ndraws = 1000, ncores = 50)
 
 # results %>%
 #   mutate(across(ml:el, ~.x-beta)) %>%
