@@ -47,25 +47,15 @@ moments_two_step <- function(theta, data) {
 }
 
 # Generate vector of moments to minimize in GMM procedure for all 55 moms.
+
 moments_mom <- function(theta, data) {
-
-  # Format
-  X <- data %>% dplyr::select(starts_with("x"))
+  X <- as.matrix(data[,-1])
   y <- data$y
-
-  # Pre compute epsilons
-  eps <- y - pnorm(as.matrix(X) %*% theta)
-
-  # Get a vector of the sample moments for each moment condition
-  G <- map_dfc(
-        names(X),
-          function(ii) {
-            (X[ii] * eps)
-          }
-        )
-
-  # Return n*k matrix, k is number of moments/regressors
-  as.matrix(G)
+  
+  eps <- y - pnorm(as.matrix(X) %*% beta)
+  G <- apply(X,2,function(x) x*eps) 
+  
+  G
 }
 
 

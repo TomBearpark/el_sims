@@ -4,10 +4,10 @@ moments_mom_alt <- function(theta, data) {
   X <- as.matrix(data[,-1])
   y <- data$y
   
-  eps <- y - pnorm(as.matrix(X) %*% beta)
+  eps <- y - pnorm(as.matrix(X) %*% theta)
   G <- apply(X,2,function(x) x*eps) 
   
-  return(G)
+  G
 }
 
 
@@ -17,7 +17,7 @@ moments_two_step <- function(theta, data) {
   
   colX <- ncol(X)
   
-  eps <- (y - pnorm(as.matrix(X) %*% beta))[,1,drop=T]
+  eps <- (y - pnorm(as.matrix(X) %*% theta))[,1,drop=T]
   G <- apply(X,2,function(x) X*x*eps) 
   G <- matrix(G, nrow = nrow(X), ncol = colX^2)
   
@@ -28,5 +28,5 @@ moments_two_step <- function(theta, data) {
     selcol <- append(selcol,c(falses,trues))
   }
   
-  G <- G[,selcol]
+  G[,selcol]
 }

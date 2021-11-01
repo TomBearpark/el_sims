@@ -42,6 +42,6 @@ gmm2 <- est.GMM(data.df, type = "twoStep")
 cue  <- est.GMM(data.df, type = "cue")
 
 ## EL
-cue  <- est.GMM(data.df, type = "EL")
+
 
 
