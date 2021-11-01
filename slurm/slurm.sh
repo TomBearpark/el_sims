@@ -11,4 +11,4 @@
 module purge
 module load rh/devtoolset/8 
 
-Rscript /home/bearpark/el_sims/main.R
+Rscript /home/bearpark/el_sims/code/1_run_sim/main.R
