@@ -27,13 +27,16 @@ df %>%
   pivot_longer(cols = ml:el) %>%
   ggplot() +
   geom_density(aes(x = value, color = var)) +
-  facet_wrap(vars(name)) + 
+  xlim(c(-1, 1)) +
+  facet_wrap(vars(name), scales = "free") + 
   ggtitle("Estimated coefs mins the real values")
 
+# Variance of 
 df %>% 
   pivot_longer(cols = ml:el) %>%
   group_by(var, name) %>% 
   summarize(sd = sd(value))
-  
+
+# Run time for a full set of estimators  
 df %>% ggplot() + 
   geom_density(aes(x = time))

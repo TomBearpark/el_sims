@@ -9,21 +9,21 @@ theme_set(theme_bw())
 # Set directories
 user <- Sys.getenv("USER")
 if( user == "tombearpark"){
-  code_dir <- file.path('/Users/tombearpark/Documents/GitHub/el_sims/')
+  dir <- file.path('/Users/tombearpark/Documents/GitHub/el_sims/')
 }else if (user == "bearpark"){
   # For the server
-  code_dir <- file.path("/home/bearpark/el_sims/")
+  dir <- file.path("/home/bearpark/el_sims/code")
 } else{
-  code_dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\'
+  dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\code\\'
 } 
 
-fig_loc <- file.path(code_dir, "fig/")
-tab_loc <- file.path(code_dir, "tab/")
+fig_loc <- file.path(dir, "fig/")
+tab_loc <- file.path(dir, "tab/")
 dir.create(fig_loc, showWarnings = FALSE); dir.create(tab_loc, showWarnings = FALSE)
 
 # Load auxiliary funs
-source(file.path(code_dir,"funs.R"))
-source(file.path(code_dir,"gmm_funcs.R"))
+source(file.path(dir, "code/1_run_sim/funs.R"))
+source(file.path(dir, "code/1_run_sim/gmm_funcs.R"))
 
 ###############################################################################
 seed <- 8894; set.seed(seed)
@@ -31,10 +31,10 @@ seed <- 8894; set.seed(seed)
 n <- 1000
 k <- 10
 
-run_sim <- function(i, k, n){
+run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
   print(i); tic()
   
-  data.obj <- gen_data(k = k, n = n)
+  data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho)
   data.df <- data.obj$df
   beta <- data.obj$model.specs$beta
   
@@ -68,14 +68,30 @@ run_sim <- function(i, k, n){
          ) 
 }
 
-ncores <- 50
-plan(multisession, workers = ncores)
-results <- future_map_dfr(1:1000, run_sim, k = k, n = n, 
+run_study <- function(n, k, X.sigma, rho = 0, 
+                      ncores = 50, ndraws = 1000, seed = 8894){
+
+  plan(multisession, workers = ncores)
+  results <- future_map_dfr(1:ndraws, run_sim, k = k, n = n, 
+                            X.sigma = X.sigma, rho = rho, 
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
+  
+  if(X.sigma == "I"){
+    var_tag <- ""
+  }else if(X.sigma == "decay"){
+    var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
+  }
+  write_csv(results, 
+            file = file.path(tab_loc, 
+                      paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")))
+}
 
-write_csv(results, file = file.path(tab_loc, 
-                                    paste0("sim_k", k, "_n", n, ".csv")))
+# # Naive first step
+# run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
+# run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
+
+run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 
 # results %>%
 #   mutate(across(ml:el, ~.x-beta)) %>%

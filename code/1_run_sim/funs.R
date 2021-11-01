@@ -1,11 +1,30 @@
+gen_sigma <- function(k, rho){
+  sigma <- diag(nrow = k)
+  for(i in 1:k) for(j in 1:k) sigma[i,j] <- rho^(abs(i - j))
+  sigma
+}
+
 gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE, 
-                     X.mu = NULL, X.sigma = NULL){
+                     X.mu = NULL, X.sigma = "I", rho = 0){
+  
+  if(X.sigma == "I") {
+    message ("using identity covariance matrix for X")
+  } else if(X.sigma == "decay") {
+    if(rho == 0) stop("need to specify rho")
+  }else{
+    stop("that structure on X.sigma is not currently implemented!")
+  }
   
   # If not specified the true betas are drawn from a uniform on [-1,1]
   if (is.null(beta)) beta <- runif(k, min = -1, max = 1) 
   
   # If not specified covariates are independent
-  if (is.null(X.sigma))  X.sigma <- diag(k)
+  if (X.sigma == "I")  {
+    X.sigma <- diag(k)
+  }else{
+    X.sigma <- gen_sigma(k = k, rho = rho)
+  }
+  
   # and centered on 0
   if (is.null(X.mu)) X.mu <- rep(0,k)
   
@@ -30,7 +49,8 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
                       'sample' = n,
                       'constant' = constant,
                       'X.mu' = X.mu,
-                      'X.sigma' = X.sigma)
+                      'X.sigma' = X.sigma, 
+                      'rho' = rho)
   
   return(list(df = out, eps = epsilon, model.specs = model.specs))
 }
