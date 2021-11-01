@@ -79,10 +79,10 @@ est.GMM <- function(data, type = "twoStep") {
   # Get the right moment function
   if (type == "mom") {
     moments <- moments_mom
-    est <- gmm(g = moments, x = data, init, wmatrix = "ident")
+    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident") # this is exaclty identified, should be the same without W
   } else if (type %in% c("cue", "twoStep")) {
     moments <- moments_two_step
-    est <- gmm(g = moments, x = data, init, type = type)
+    est <- gmm(g = moments, x = data, t0 = init, type = type)
   } else if (type == "EL"){
     stop("NOT YET IMPLEMENTED")
   }
