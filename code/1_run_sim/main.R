@@ -12,7 +12,7 @@ if( user == "tombearpark"){
   dir <- file.path('/Users/tombearpark/Documents/GitHub/el_sims/')
 }else if (user == "bearpark"){
   # For the server
-  dir <- file.path("/home/bearpark/el_sims/code")
+  dir <- file.path("/home/bearpark/el_sims/")
 } else{
   dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\code\\'
 } 
@@ -89,9 +89,9 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 # # Naive first step
 # run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
-# run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
+run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
 
-run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+# run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 
 # results %>%
 #   mutate(across(ml:el, ~.x-beta)) %>%
