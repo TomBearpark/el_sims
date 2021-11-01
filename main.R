@@ -1,7 +1,7 @@
 ###############################################################################
 ## Load stuff
 if(!require(pacman)) install.packages('pacman')
-pacman::p_load('MASS', 'tidyverse', 'gmm')
+pacman::p_load('MASS', 'tidyverse', 'gmm', 'doParallel','doRNG')
 theme_set(theme_bw())
 
 # Set directories

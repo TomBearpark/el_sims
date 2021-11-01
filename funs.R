@@ -47,17 +47,29 @@ est.ML <- function(data) {
 }
 
 
-est.ALL <- function() {
-  ## ML probit model
+est.ALL <- function(data, nsims, ncores = NULL) {
   
-  ## Method of moments estimator
+  if (is.null(ncores)) {
+    ncores <- detectCores(logical = TRUE) - 1 
+  }
   
-  ## 1-step GMM with I
-  
-  ## Two-step efficient GMM
-  
-  ## CUE
-  
-  ## EL
-}
+  cl <- makeCluster(ncores)
+  registerDoParallel(cl)
+
+  simres <- foreach(i = 1 : nsims,
+                    .packages = c('gmm'),    # packages needed in the function below
+                    .export   = c('est.ML','gmm_funcs.R'),   # our functions needed below
+                    .combine  = rbind) %dorng% {
+                      
+                      # code that describes what each sim does
+                      out1 <- est.ML(data)
+                      
+                      
+                      
+                      #put as last thing the object to return
+                    }
+                    
+                    
+  }
+
 
