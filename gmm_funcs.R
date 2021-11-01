@@ -44,35 +44,51 @@ moments_two_step <- function(theta, data) {
   G[,selcol]
 }
 
+D_two_step <- function(theta, data){
+ stop("not implemented yet") 
+}
+
 # Generate moments for method of moments estimator 
 moments_mom <- function(theta, data) {
   X <- as.matrix(data[,-1])
   y <- data$y
   
-  eps <- y - pnorm(as.matrix(X) %*% beta)
+  eps <- y - pnorm(as.matrix(X) %*% theta)
   G <- apply(X,2,function(x) x*eps) 
   
   G
 }
-D_mom <- functon(theta, data)
+
+# Derivative for the method of moments estimator
+D_mom <- function(theta, data){
+  X <- as.matrix(data[,-1])
+  y <- data$y
+  1/length(y) * crossprod(X)
+}
 
 
 ## Wrapper function for running the gmms
-est.GMM <- function(data, type = "twoStep") {
+est.GMM <- function(data, type = "twoStep", init = NULL) {
   stopifnot(type %in% c("mom", "twoStep", "cue", "EL"))
 
   # Initialise with linear regression
-  init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()
-
+  if(is.null(init)){
+    init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
+  }
+  
   # Get the right moment function
   if (type == "mom") {
     moments <- moments_mom
-    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident") # this is exaclty identified, should be the same without W
-  } else if (type %in% c("cue", "twoStep")) {
+    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident", onlyCoefficients = TRUE) # this is exaclty identified, should be the same without W
+  } else if (type %in% c("twoStep")) {
     moments <- moments_two_step
-    est <- gmm(g = moments, x = data, t0 = init, type = type)
+    est <- gmm(g = moments, x = data, t0 = init, type = type, onlyCoefficients = TRUE)
+  } else if (type == "cue"){
+    moments <- moments_two_step
+    est <- gel(g = moments, x = data, tet0 = init, type = "CUE")
   } else if (type == "EL"){
-    stop("NOT YET IMPLEMENTED")
+    moments <- moments_two_step
+    est <- gel(g = moments, x = data, tet0 = init, type = "EL")
   }
 
   list(beta.hat = est$coefficients)
