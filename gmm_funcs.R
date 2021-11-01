@@ -23,31 +23,28 @@ gen_combinations <- function(x_list) {
 }
 
 # Generate vector of moments to minimize in GMM procedure for all 55 moms.
+
 moments_two_step <- function(theta, data) {
-
-  # Format
-  X <- data %>% dplyr::select(starts_with("x"))
+  X <- as.matrix(data[,-1])
   y <- data$y
-
-  # Get a list of all the moment conditions we want to include
-  moms <- gen_combinations(names(X))
-  # Pre compute epsilons
-  eps <- y - pnorm(as.matrix(X) %*% theta)
-
-  # Get a vector of the sample moments for each moment condition
-  G <- map_dfc(
-    1:dim(moms)[1],
-    function(ii) {
-      (X[moms$v1[ii]] * X[moms$v2[ii]] * eps)
-    }
-  )
-
-  # Return n*q matrix, q is number of moments
-  as.matrix(G)
+  
+  colX <- ncol(X)
+  
+  eps <- (y - pnorm(as.matrix(X) %*% theta))[,1,drop=T]
+  G <- apply(X,2,function(x) X*x*eps) 
+  G <- matrix(G, nrow = nrow(X), ncol = colX^2)
+  
+  selcol <- c()
+  for (k in seq_len(colX)) {
+    trues  <- rep(T,colX-k+1)
+    falses <- rep(F,k-1)
+    selcol <- append(selcol,c(falses,trues))
+  }
+  
+  G[,selcol]
 }
 
-# Generate vector of moments to minimize in GMM procedure for all 55 moms.
-
+# Generate moments for method of moments estimator 
 moments_mom <- function(theta, data) {
   X <- as.matrix(data[,-1])
   y <- data$y
@@ -57,9 +54,10 @@ moments_mom <- function(theta, data) {
   
   G
 }
+D_mom <- functon(theta, data)
 
 
-
+## Wrapper function for running the gmms
 est.GMM <- function(data, type = "twoStep") {
   stopifnot(type %in% c("mom", "twoStep", "cue", "EL"))
 

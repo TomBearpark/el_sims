@@ -18,6 +18,7 @@ tab_loc <- file.path(dir, "tab/")
 # Load auxiliary funs
 source(file.path(dir,"funs.R"))
 source(file.path(dir,"gmm_funcs.R"))
+source(file.path(dir,"vec_mmc.R"))
 
 ###############################################################################
 set.seed(8894)
