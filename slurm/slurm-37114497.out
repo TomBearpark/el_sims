@@ -1,0 +1,5 @@
+Loading required package: pacman
+Error in paste0("sim", ndraws, "_k", k, "_n", n, var_tag, ".csv") : 
+  object 'var_tag' not found
+Calls: run_study -> paste0
+Execution halted

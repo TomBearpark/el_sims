@@ -70,31 +70,34 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
 
 run_study <- function(n, k, X.sigma, rho = 0, 
                       ncores = 50, ndraws = 1000, seed = 8894){
-
-  plan(multisession, workers = ncores)
-  results <- future_map_dfr(1:ndraws, run_sim, k = k, n = n, 
-                            X.sigma = X.sigma, rho = rho, 
-                          .options = furrr_options(seed = seed), 
-                          .progress = TRUE)
   
   if(X.sigma == "I"){
     var_tag <- ""
   }else if(X.sigma == "decay"){
     var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
   }
+
+  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
+  message(file)
+  plan(multisession, workers = ncores)
+  results <- future_map_dfr(1:ndraws, run_sim, k = k, n = n, 
+                            X.sigma = X.sigma, rho = rho, 
+                          .options = furrr_options(seed = seed), 
+                          .progress = TRUE)
+  
   write_csv(results, 
             file = file.path(tab_loc, 
                       paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")))
 }
 
 # # Naive first step
-run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
-run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
+#run_study(n = 1000,  k = 10, X.sigma = "I", ncores = 50)
+#run_study(n = 10000, k = 10, X.sigma = "I", ncores = 50)
 
-run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+#run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.1, ndraws = 1000, ncores = 50)
-
+#run_study(n = 1000, k = 10, X.sigma = "decay", rho = 0.1, ndraws = 1000, ncores = 50)
+#run_study(n = 10000, k = 10, X.sigma = "I",  ndraws = 1000, ncores = 50)
 # results %>%
 #   mutate(across(ml:el, ~.x-beta)) %>%
 #   pivot_longer(cols = ml:el) %>%
