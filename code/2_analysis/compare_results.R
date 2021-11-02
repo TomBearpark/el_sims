@@ -23,7 +23,9 @@ n <- 1000
 
 df <- read_csv(file.path(tab_loc, "sim1000_k10_n1000.csv")) %>% 
   mutate(rho = 0)
-df1 <- read_csv(file.path(tab_loc, "sim1000_k10_n1000_decay_rho0_5.csv")) %>% 
+
+
+df1 <- read_csv(file.path(tab_loc, "sim1000_k10_n1000.csv")) %>% 
   mutate(rho = 0.5)
 
 ### Make some plots... 
