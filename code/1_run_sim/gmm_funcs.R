@@ -76,20 +76,36 @@ est.GMM <- function(data, type = "twoStep", init = NULL) {
     init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
   }
   
+  # Start timer
+  tic()
+  
   # Get the right moment function
   if (type == "mom") {
+  
     moments <- moments_mom
-    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident", onlyCoefficients = TRUE) # this is exaclty identified, should be the same without W
+    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident") # this is exaclty identified, should be the same without W
+    converge <- est$algoInfo$convergence
+ 
   } else if (type %in% c("twoStep")) {
+    
     moments <- moments_two_step
-    est <- gmm(g = moments, x = data, t0 = init, type = type, onlyCoefficients = TRUE)
+    est <- gmm(g = moments, x = data, t0 = init, type = "twoStep")
+    converge <- est$algoInfo$convergence
+  
   } else if (type == "cue"){
+    
     moments <- moments_two_step
     est <- gel(g = moments, x = data, tet0 = init, type = "CUE")
+    converge <- est$conv_par
+  
   } else if (type == "EL"){
     moments <- moments_two_step
     est <- gel(g = moments, x = data, tet0 = init, type = "EL")
+    converge <- est$conv_par
   }
-
-  list(beta.hat = est$coefficients)
+  # End the timer
+  tt <- toc()
+  
+  list(beta.hat = est$coefficients, converge = converge, 
+       time = tt$toc - tt$tic)
 }

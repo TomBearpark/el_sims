@@ -57,39 +57,21 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
 
 
 est.ML <- function(data) {
+  
+  tic()
   est <- glm(formula = y ~ . - 1, 
                 family = binomial(link = "probit"), 
                 data = data)
+  tt <- toc()
   
   # I'm coding it as a list to allow us considering SEs later
-  results <- list(beta.hat = est$coefficients)
-  return(results)
+  return(list(beta.hat = est$coefficients, converge = 1*est$converged, 
+              time = tt$toc - tt$tic))
 }
 
+write_fail <- function(data.obj){
+  data.obj
+}
 
-est.ALL <- function(data, nsims, ncores = NULL) {
-  
-  if (is.null(ncores)) {
-    ncores <- detectCores(logical = TRUE) - 1 
-  }
-  
-  cl <- makeCluster(ncores)
-  registerDoParallel(cl)
-
-  simres <- foreach(i = 1 : nsims,
-                    .packages = c('gmm'),    # packages needed in the function below
-                    .export   = c('est.ML','gmm_funcs.R'),   # our functions needed below
-                    .combine  = rbind) %dorng% {
-                      
-                      # code that describes what each sim does
-                      out1 <- est.ML(data)
-                      
-                      
-                      
-                      #put as last thing the object to return
-                    }
-                    
-                    
-  }
 
 

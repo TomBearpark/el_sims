@@ -18,7 +18,7 @@ if( user == "tombearpark"){
 } 
 
 fig_loc <- file.path(dir, "fig/")
-tab_loc <- file.path(dir, "tab/")
+tab_loc <- file.path(dir, "out/")
 dir.create(fig_loc, showWarnings = FALSE); dir.create(tab_loc, showWarnings = FALSE)
 
 # Load auxiliary funs
@@ -32,7 +32,7 @@ n <- 1000
 k <- 10
 
 run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
-  print(i); tic()
+  print(i)
   
   data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho)
   data.df <- data.obj$df
@@ -53,51 +53,77 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
   ## EL
   el  <- est.GMM(data.df, type = "EL")
   
-  tt <- toc()
-  
   ## Store results
-  tibble(i = i, 
+  
+  times <- tibble(i = i,          
+                  ml = ml$time, 
+                  mom = mom$time, 
+                  gmm = gmm2$time, 
+                  cue = cue$time,
+                  el = el$time)
+  
+  fails <- tibble(i = i,          
+                  ml = ml$converge, 
+                  mom = mom$converge, 
+                  gmm = gmm2$converge, 
+                  cue = cue$converge,
+                  el = el$converge)
+  
+  coefs <- tibble(i = i, 
          var = names(data.obj$df)[-1], 
          beta = beta, 
          ml = ml$beta.hat, 
-         mom = mom$beta.hat[,1], 
-         gmm = gmm2$beta.hat[,1], 
+         mom = mom$beta.hat, 
+         gmm = gmm2$beta.hat, 
          cue = cue$beta.hat[,1],
-         el = el$beta.hat[,1], 
-         time = tt$toc - tt$tic
-         ) 
+         el = el$beta.hat[,1]) 
+  
+  if(sum(fails[,-1])){
+    write_csv(data.obj$df, file = paste0(tab_loc, "failed_data/data_obj",i,".csv"))
+    write_csv(tibble(beta), file = paste0(tab_loc, "failed_data/beta",i,".csv"))
+  }
+  
+  return(list(times = times, fails = fails, coefs = coefs))
 }
 
 run_study <- function(n, k, X.sigma, rho = 0, 
                       ncores = 50, ndraws = 1000, seed = 8894){
   
+  # Tag for file names
   if(X.sigma == "I"){
     var_tag <- ""
   }else if(X.sigma == "decay"){
     var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
   }
-
   file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
+  
+  # Set up parallel compute
   message(file)
   plan(multisession, workers = ncores)
-  results <- future_map_dfr(1:ndraws, run_sim, k = k, n = n, 
+  results <- future_map(1:ndraws, run_sim, k = k, n = n, 
                             X.sigma = X.sigma, rho = rho, 
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
   
-  write_csv(results, 
-            file = file.path(tab_loc, 
-                      paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")))
+  coefs <- map_dfr(1:ndraws, function(x) results[[x]]$coefs)
+  times <- map_dfr(1:ndraws, function(x) results[[x]]$times)
+  converge <- map_dfr(1:ndraws, function(x) results[[x]]$fails)
+  
+  write_csv(coefs, file = file.path(tab_loc, "coefs/", file))
+  write_csv(times, file = file.path(tab_loc, "times/", file))
+  write_csv(converge, file = file.path(tab_loc, "converge/", file))
 }
 
-# # Naive first step
+# Run stuff... 
 k <- 5
-run_study(n = 1000,  k = k, X.sigma = "I", ncores = 50)
-# run_study(n = 10000, k = k, X.sigma = "I", ncores = 50)
-
-# run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-# run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.1, ndraws = 1000, ncores = 50)
+# 
+k <- 10
+run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
 
 
 
