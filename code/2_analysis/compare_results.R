@@ -19,10 +19,15 @@ tab_loc <- file.path(code_dir, "tab/")
 ### Load the data 
 k <- 10
 n <- 1000
-df <- read_csv(file.path(tab_loc, paste0("sim_k", k, "_n", n, ".csv")))
+# df <- read_csv(file.path(tab_loc, paste0("sim_k", k, "_n", n, ".csv")))
+
+df <- read_csv(file.path(tab_loc, "sim1000_k10_n1000.csv")) %>% 
+  mutate(rho = 0)
+df1 <- read_csv(file.path(tab_loc, "sim1000_k10_n1000_decay_rho0_5.csv")) %>% 
+  mutate(rho = 0.5)
 
 ### Make some plots... 
-df %>%
+df1 %>%
   mutate(across(ml:el, ~.x-beta)) %>%
   pivot_longer(cols = ml:el) %>%
   ggplot() +
