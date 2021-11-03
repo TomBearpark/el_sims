@@ -27,22 +27,49 @@ source(file.path(dir, "code/1_run_sim/gmm_funcs.R"))
 
 ###############################################################################
 set.seed(1)
+
 D_mom <- function(theta, data){
   X <- as.matrix(data[,-1])
-  - t(X) %*% diag(dnorm(X%*%theta)[,1,drop=T]) %*% X
+  - t(X) %*% diag(dnorm(X%*%theta)[,1,drop=T])
 }
 
-data.obj <- gen_data(k = 10, n = 1000, X.sigma = "I", rho = 0)
+
+D_mom_tom <- function(theta, data){
+  X <- as.matrix(data[,-1])
+  y <- data$y
+  k <- dim(X)[2]
+  eps_hat <- y - pnorm(as.matrix(X) %*% theta)
+  D <- matrix(ncol = k, nrow = k)
+  for(k1 in 1:k){
+    for(k2 in 1:k){
+      D[k1, k2] <- mean(X[,k1] * X[,k2] * eps_hat)
+    }
+  }
+  D
+}
+k <- 10
+data.obj <- gen_data(k = k, n = 1000, X.sigma = "I", rho = 0)
 data <- data.obj$df
 beta <- data.obj$model.specs$beta
 
+D_mom(theta = beta, data = data)
+D_mom_tom(theta = beta, data = data)
 
 init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
+
 est <- gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-           itermax=1000000, gradv = D_mom) # 
+           itermax=1000000, gradv = D_mom) 
+
+est2 <- gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+           itermax=1000000, gradv = D_mom_tom) 
 
 
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+    itermax=1000000, gradv = D_mom_tom) 
 
+
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+    optfct="nlminb", control=list(maxit=1000, iter.max=1000)) 
 
 
 
