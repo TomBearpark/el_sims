@@ -77,7 +77,7 @@ est.GMM <- function(data, type = "twoStep", init = NULL) {
   
   # Start timer
   tic()
-  iter.max <- 100000
+  iter.max <- 1000
   # Get the right moment function
   if (type == "mom") {
   
