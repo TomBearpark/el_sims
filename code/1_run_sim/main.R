@@ -125,5 +125,10 @@ run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
 
+k <- 12
+run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+
 
 

@@ -65,7 +65,7 @@ est.ML <- function(data) {
   tt <- toc()
   
   # I'm coding it as a list to allow us considering SEs later
-  return(list(beta.hat = est$coefficients, converge = 1*est$converged, 
+  return(list(beta.hat = est$coefficients, converge =1- 1*est$converged, 
               time = tt$toc - tt$tic))
 }
 
