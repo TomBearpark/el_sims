@@ -19,10 +19,6 @@ source(file.path(code_dir, "code/1_run_sim/funs.R"))
 tab_loc <- file.path(code_dir, "out/")
 
 ### Load the data 
-k <- 10
-n <- 1000
-ndraws <- 1000
-
 
 load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
   
@@ -43,46 +39,27 @@ load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
     mutate(k = !!k, n = !!n, x_var = !!var_tag)
 }
 
+plot_results <- function(df, var_name){
+  ggplot(df) +
+    geom_density(aes(x = bias, color = var)) +
+    xlim(c(-1, 1)) +
+    facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
+    ggtitle(paste0("Estimated coefs mins the real values, X.sigma = ", var_name))
+}
+
 
 ### Make some plots... 
 df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
-df %>%
-  ggplot() +
-  geom_density(aes(x = bias, color = var)) +
-  xlim(c(-1, 1)) +
-  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
-  ggtitle("Estimated coefs mins the real values, X.sigma = I")
-
-
-df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
-df %>%
-  ggplot() +
-  geom_density(aes(x = bias, color = var)) +
-  xlim(c(-1, 1)) +
-  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
-  ggtitle("Estimated coefs mins the real values, X.sigma = decay 0.9")
-
+plot_results(df, "I")
 
 df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)
-df %>%
-  ggplot() +
-  geom_density(aes(x = bias, color = var)) +
-  xlim(c(-1, 1)) +
-  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
-  ggtitle("Estimated coefs mins the real values, X.sigma = decay 0.5")
+plot_results(df, "decay .5")
 
+df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
+plot_results(df, "decay .9")
 
 df %>% 
   group_by(converge, estimator) %>% 
   tally()
 
 
-# Variance of 
-df %>% 
-  pivot_longer(cols = ml:el) %>%
-  group_by(var, name) %>% 
-  summarize(sd = sd(value))
-
-# Run time for a full set of estimators  
-df %>% ggplot() + 
-  geom_density(aes(x = time))
