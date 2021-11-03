@@ -21,7 +21,7 @@ tab_loc <- file.path(code_dir, "out/")
 ### Load the data 
 
 load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
-  
+  ndraws <- 1000
   var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
   file    <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
   
@@ -59,7 +59,10 @@ df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.9, ta
 plot_results(df, "decay .9")
 
 df %>% 
-  group_by(converge, estimator) %>% 
+  select(i, var, estimator, converge, bias, k) %>% 
+  pivot_wider(id_cols = -k, names_from = k, values_from = bias, names_prefix = "k_") %>%
+  group_by(estimator, converge) %>%
   tally()
 
 
+df
