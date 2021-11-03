@@ -77,29 +77,33 @@ est.GMM <- function(data, type = "twoStep", init = NULL) {
   
   # Start timer
   tic()
-  
+  iter.max <- 100000
   # Get the right moment function
   if (type == "mom") {
   
     moments <- moments_mom
-    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident") # this is exaclty identified, should be the same without W
+    est <- gmm(g = moments, x = data, t0 = init, wmatrix = "ident", 
+               optfct="nlminb", control=list(iter.max=iter.max))  # this is exaclty identified, should be the same without W
     converge <- est$algoInfo$convergence
  
   } else if (type %in% c("twoStep")) {
     
     moments <- moments_two_step
-    est <- gmm(g = moments, x = data, t0 = init, type = "twoStep")
+    est <- gmm(g = moments, x = data, t0 = init, type = "twoStep", 
+               optfct="nlminb", control=list(iter.max=iter.max)) 
     converge <- est$algoInfo$convergence
   
   } else if (type == "cue"){
     
     moments <- moments_two_step
-    est <- gel(g = moments, x = data, tet0 = init, type = "CUE")
+    est <- gel(g = moments, x = data, tet0 = init, type = "CUE", 
+               optfct="nlminb", control=list(iter.max=iter.max)) 
     converge <- est$conv_par
   
   } else if (type == "EL"){
     moments <- moments_two_step
-    est <- gel(g = moments, x = data, tet0 = init, type = "EL")
+    est <- gel(g = moments, x = data, tet0 = init, type = "EL", 
+               optfct="nlminb", control=list(iter.max=iter.max)) 
     converge <- est$conv_par
   }
   # End the timer

@@ -33,7 +33,6 @@ D_mom <- function(theta, data){
   - t(X) %*% diag(dnorm(X%*%theta)[,1,drop=T])
 }
 
-
 D_mom_tom <- function(theta, data){
   X <- as.matrix(data[,-1])
   y <- data$y
@@ -47,6 +46,7 @@ D_mom_tom <- function(theta, data){
   }
   D
 }
+
 k <- 10
 data.obj <- gen_data(k = k, n = 1000, X.sigma = "I", rho = 0)
 data <- data.obj$df
@@ -55,21 +55,43 @@ beta <- data.obj$model.specs$beta
 D_mom(theta = beta, data = data)
 D_mom_tom(theta = beta, data = data)
 
+
 init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
 
-est <- gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-           itermax=1000000, gradv = D_mom) 
+## See how convergence is looking... 
 
-est2 <- gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-           itermax=1000000, gradv = D_mom_tom) 
-
+## mom
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+           gradv = D_mom) 
 
 gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-    itermax=1000000, gradv = D_mom_tom) 
-
+           gradv = D_mom_tom) 
 
 gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-    optfct="nlminb", control=list(maxit=1000, iter.max=1000)) 
+    optfct="nlminb", control=list(iter.max=10000)) 
 
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+     control=list(maxit=1000), method = "BFGS")
+
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+    control=list(maxit=100000))
+
+## two step
+gmm(g = moments_two_step, x = data, t0 = init, type = "twoStep")
+gmm(g = moments_two_step, x = data, t0 = init, type = "twoStep", 
+    control=list(maxit=100000))
+    optfct="nlminb", control=list(iter.max=10000), 
+    lower = rep(-1, k), upper = rep(1, k)) 
+beta
+
+## CUE
+gel(g = moments_two_step, x = data, tet0 = init, type = "CUE")
+gel(g = moments_two_step, x = data, tet0 = init, type = "CUE", 
+    optfct="nlminb", control=list(iter.max=10000))
+
+## EL
+gel(g = moments_two_step, x = data, tet0 = init, type = "EL")
+gel(g = moments_two_step, x = data, tet0 = init, type = "EL", 
+    optfct="nlminb", control=list(iter.max=10000))
 
 

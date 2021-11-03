@@ -75,8 +75,8 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
          ml = ml$beta.hat, 
          mom = mom$beta.hat, 
          gmm = gmm2$beta.hat, 
-         cue = cue$beta.hat[,1],
-         el = el$beta.hat[,1]) 
+         cue = cue$beta.hat,
+         el = el$beta.hat) 
   
   if(sum(fails[,-1])){
     write_csv(data.obj$df, file = paste0(tab_loc, "failed_data/data_obj",i,".csv"))
@@ -115,7 +115,7 @@ k <- 5
 run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-# 
+#
 k <- 10
 run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
 run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
