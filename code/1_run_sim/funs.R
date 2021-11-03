@@ -73,5 +73,11 @@ write_fail <- function(data.obj){
   data.obj
 }
 
-
-
+get_var_tag <- function(X.sigma, rho){
+  if(X.sigma == "I"){
+    var_tag <- ""
+  }else if(X.sigma == "decay"){
+    var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
+  }
+  var_tag
+}

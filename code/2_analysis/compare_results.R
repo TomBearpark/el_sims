@@ -14,29 +14,68 @@ if( user == "tombearpark"){
   code_dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\'
 } 
 
-tab_loc <- file.path(code_dir, "tab/")
+source(file.path(code_dir, "code/1_run_sim/funs.R"))
+
+tab_loc <- file.path(code_dir, "out/")
 
 ### Load the data 
 k <- 10
 n <- 1000
-# df <- read_csv(file.path(tab_loc, paste0("sim_k", k, "_n", n, ".csv")))
-
-df <- read_csv(file.path(tab_loc, "sim1000_k10_n1000.csv")) %>% 
-  mutate(rho = 0)
+ndraws <- 1000
 
 
-df1 <- read_csv(file.path(tab_loc, "sim1000_k10_n1000.csv")) %>% 
-  mutate(rho = 0.5)
+load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
+  
+  var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
+  file    <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
+  
+  df      <- read_csv(file.path(tab_loc, "coefs/", file))
+  conv    <- read_csv(file.path(tab_loc, "converge/", file))
+  times   <- read_csv(file.path(tab_loc, "times/", file))
+  
+  df %>% 
+    mutate(across(ml:el, ~.x-beta)) %>% 
+    pivot_longer(cols = ml:el, values_to = "bias", names_to = "estimator") %>% 
+    left_join(pivot_longer(conv, ml:el, names_to = "estimator", 
+                           values_to = "converge")) %>% 
+    left_join(pivot_longer(times, ml:el, names_to = "estimator", 
+                           values_to = "time")) %>% 
+    mutate(k = !!k, n = !!n, x_var = !!var_tag)
+}
+
 
 ### Make some plots... 
-df1 %>%
-  mutate(across(ml:el, ~.x-beta)) %>%
-  pivot_longer(cols = ml:el) %>%
+df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
+df %>%
   ggplot() +
-  geom_density(aes(x = value, color = var)) +
+  geom_density(aes(x = bias, color = var)) +
   xlim(c(-1, 1)) +
-  facet_wrap(vars(name), scales = "free") + 
-  ggtitle("Estimated coefs mins the real values")
+  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
+  ggtitle("Estimated coefs mins the real values, X.sigma = I")
+
+
+df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
+df %>%
+  ggplot() +
+  geom_density(aes(x = bias, color = var)) +
+  xlim(c(-1, 1)) +
+  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
+  ggtitle("Estimated coefs mins the real values, X.sigma = decay 0.9")
+
+
+df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)
+df %>%
+  ggplot() +
+  geom_density(aes(x = bias, color = var)) +
+  xlim(c(-1, 1)) +
+  facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
+  ggtitle("Estimated coefs mins the real values, X.sigma = decay 0.5")
+
+
+df %>% 
+  group_by(converge, estimator) %>% 
+  tally()
+
 
 # Variance of 
 df %>% 

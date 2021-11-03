@@ -90,11 +90,7 @@ run_study <- function(n, k, X.sigma, rho = 0,
                       ncores = 50, ndraws = 1000, seed = 8894){
   
   # Tag for file names
-  if(X.sigma == "I"){
-    var_tag <- ""
-  }else if(X.sigma == "decay"){
-    var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
-  }
+  var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
   file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
   
   # Set up parallel compute
