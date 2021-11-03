@@ -35,10 +35,13 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
   if (constant == TRUE) X[,1] <- 1
   
   # Draw a error term: normal due to probit
-  epsilon <- rnorm(n)
+  u <- rnorm(n)
   
   # Generate binary Y values
-  Y <- 1*(X %*% beta >= epsilon) 
+  Y <- 1*(X %*% beta >= u) 
+  
+  # Calculate the population residuals 
+  eps <- Y - dnorm(X %*% beta)
   
   # Clean up outputs 
   out <- data.frame(Y, X) 
@@ -52,7 +55,7 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
                       'X.sigma' = X.sigma, 
                       'rho' = rho)
   
-  return(list(df = out, eps = epsilon, model.specs = model.specs))
+  return(list(df = out, u = u, model.specs = model.specs, eps = eps))
 }
 
 

@@ -30,8 +30,8 @@ moments_two_step <- function(theta, data) {
   
   colX <- ncol(X)
   
-  eps <- (y - pnorm(as.matrix(X) %*% theta))[,1,drop=T]
-  G <- apply(X,2,function(x) X*x*eps) 
+  eps_hat <- (y - pnorm(as.matrix(X) %*% theta))[,1,drop=T]
+  G <- apply(X,2,function(x) X*x*eps_hat) 
   G <- matrix(G, nrow = nrow(X), ncol = colX^2)
   
   selcol <- c()
@@ -53,8 +53,8 @@ moments_mom <- function(theta, data) {
   X <- as.matrix(data[,-1])
   y <- data$y
   
-  eps <- y - pnorm(as.matrix(X) %*% theta)
-  G <- apply(X,2,function(x) x*eps) 
+  eps_hat <- y - pnorm(as.matrix(X) %*% theta)
+  G <- apply(X,2,function(x) x*eps_hat) 
   
   G
 }
@@ -62,8 +62,7 @@ moments_mom <- function(theta, data) {
 # Derivative for the method of moments estimator
 D_mom <- function(theta, data){
   X <- as.matrix(data[,-1])
-  y <- data$y
-  1/length(y) * crossprod(X)
+  - dnorm(theta %*% X ) 
 }
 
 
