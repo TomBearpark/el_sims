@@ -31,7 +31,8 @@ seed <- 8894; set.seed(seed)
 n <- 1000
 k <- 10
 
-run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim){
+run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim, 
+                    write_fail = FALSE){
   print(i)
   
   data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho, blim = blim)
@@ -78,7 +79,7 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim){
          cue = cue$beta.hat,
          el = el$beta.hat) 
   
-  if(sum(fails[,-1])){
+  if(sum(fails[,-1])&write_fail){
     write_csv(data.obj$df, file = paste0(tab_loc, "failed_data/data_obj",i,".csv"))
     write_csv(tibble(beta), file = paste0(tab_loc, "failed_data/beta",i,".csv"))
   }
@@ -112,24 +113,17 @@ run_study <- function(n, k, X.sigma, rho = 0,
 }
 
 # Run stuff... 
-# run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1, ncores = 1, blim = 2)
+# run_study(n = 1000, k = k, X.sigma = "diagish", ndraws = 1, ncores = 1, rho = 0.5)
 # run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1, ncores = 1, blim = 0.5)
 
-# for(k in c(5, 10, 12)){
+for(k in c(5, 10)){
 #   run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
 #   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 #   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-# }
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+}
 
-for(k in c(5, 10, 12)){
-  run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50, blim = 0.5)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50, blim = 0.5)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50, blim = 0.5)
-}
-for(k in c(5, 10, 12)){
-  run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50, blim = 2)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50, blim = 2)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50, blim = 2)
-}
+
 
 

@@ -4,26 +4,30 @@ gen_sigma <- function(k, rho){
   sigma
 }
 
+gen_sigma_less_fancy <- function(k, rho){
+  sigma <- matrix(rho, nrow = k, ncol = k)
+  diag(sigma) <- 1
+  sigma
+}
+
 gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE, 
                      X.mu = NULL, X.sigma = "I", rho = 0, blim = 1){
   
   if(X.sigma == "I") {
     message ("using identity covariance matrix for X")
+    X.sigma <- diag(k)
   } else if(X.sigma == "decay") {
     if(rho == 0) stop("need to specify rho")
+    X.sigma <- gen_sigma(k = k, rho = rho)
+  }else if(X.sigma == "diagish"){
+    if(rho == 0) stop("need to specify rho")
+    X.sigma <- gen_sigma_less_fancy(k = k, rho = rho)
   }else{
     stop("that structure on X.sigma is not currently implemented!")
   }
   
   # If not specified the true betas are drawn from a uniform on [-1,1]
   if (is.null(beta)) beta <- runif(k, min = -blim, max = blim) 
-  
-  # If not specified covariates are independent
-  if (X.sigma == "I")  {
-    X.sigma <- diag(k)
-  }else{
-    X.sigma <- gen_sigma(k = k, rho = rho)
-  }
   
   # and centered on 0
   if (is.null(X.mu)) X.mu <- rep(0,k)
@@ -86,6 +90,10 @@ get_var_tag <- function(X.sigma, rho){
     var_tag <- ""
   }else if(X.sigma == "decay"){
     var_tag <- paste0("_decay_rho", str_replace(rho, "[.]", "_"))
+  }else if(X.sigma == "diagish"){
+    var_tag <- paste0("_diagish_rho", str_replace(rho, "[.]", "_"))
+  }else{
+    stop("Didn't implement this X.sigma, cheeky!")
   }
   var_tag
 }

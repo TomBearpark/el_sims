@@ -68,7 +68,9 @@ gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident",
            gradv = D_mom_tom) 
 
 gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
-    optfct="nlminb", control=list(iter.max=10000)) 
+    optfct="nlminb", control=list(iter.max=1000)) 
+gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
+    optfct="optim", control=list(maxit=10000)) 
 
 gmm(g = moments_mom, x = data, t0 = init, wmatrix = "ident", 
      control=list(maxit=1000), method = "BFGS")
