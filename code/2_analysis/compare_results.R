@@ -30,7 +30,7 @@ load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
   times   <- read_csv(file.path(tab_loc, "times/", file))
   
   df %>% 
-    mutate(across(ml:el, ~.x-beta)) %>% 
+    mutate(across(ml:el, ~(.x-beta)/beta)) %>% 
     pivot_longer(cols = ml:el, values_to = "bias", names_to = "estimator") %>% 
     left_join(pivot_longer(conv, ml:el, names_to = "estimator", 
                            values_to = "converge")) %>% 
@@ -49,7 +49,7 @@ plot_results <- function(df, var_name){
 
 
 ### Make some plots... 
-df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
+df <- map_dfr(c(5), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
 plot_results(df, "I")
 
 df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)

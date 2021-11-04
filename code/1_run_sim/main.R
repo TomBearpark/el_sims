@@ -31,10 +31,10 @@ seed <- 8894; set.seed(seed)
 n <- 1000
 k <- 10
 
-run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
+run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim){
   print(i)
   
-  data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho)
+  data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho, blim = blim)
   data.df <- data.obj$df
   beta <- data.obj$model.specs$beta
   
@@ -87,17 +87,18 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL){
 }
 
 run_study <- function(n, k, X.sigma, rho = 0, 
-                      ncores = 50, ndraws = 1000, seed = 8894){
+                      ncores = 50, ndraws = 1000, seed = 8894, blim = 1){
   
   # Tag for file names
   var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
-  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
+  btag <- get_b_tag(blim)
+  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag,btag ,".csv")
   
   # Set up parallel compute
   message(file)
   plan(multisession, workers = ncores)
   results <- future_map(1:ndraws, run_sim, k = k, n = n, 
-                            X.sigma = X.sigma, rho = rho, 
+                            X.sigma = X.sigma, rho = rho, blim = blim,
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
   
@@ -111,20 +112,24 @@ run_study <- function(n, k, X.sigma, rho = 0,
 }
 
 # Run stuff... 
-k <- 5
-run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-#
-k <- 10
-run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+# run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1, ncores = 1, blim = 2)
+# run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1, ncores = 1, blim = 0.5)
 
-k <- 12
-run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
-run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+# for(k in c(5, 10, 12)){
+#   run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
+#   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+#   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
+# }
 
+for(k in c(5, 10, 12)){
+  run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50, blim = 0.5)
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50, blim = 0.5)
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50, blim = 0.5)
+}
+for(k in c(5, 10, 12)){
+  run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50, blim = 2)
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50, blim = 0.5)
+  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50, blim = 2)
+}
 
 

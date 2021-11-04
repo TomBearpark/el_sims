@@ -5,7 +5,7 @@ gen_sigma <- function(k, rho){
 }
 
 gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE, 
-                     X.mu = NULL, X.sigma = "I", rho = 0){
+                     X.mu = NULL, X.sigma = "I", rho = 0, blim = 1){
   
   if(X.sigma == "I") {
     message ("using identity covariance matrix for X")
@@ -16,7 +16,7 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
   }
   
   # If not specified the true betas are drawn from a uniform on [-1,1]
-  if (is.null(beta)) beta <- runif(k, min = -1, max = 1) 
+  if (is.null(beta)) beta <- runif(k, min = -blim, max = blim) 
   
   # If not specified covariates are independent
   if (X.sigma == "I")  {
@@ -72,8 +72,13 @@ est.ML <- function(data) {
               time = tt$toc - tt$tic))
 }
 
-write_fail <- function(data.obj){
-  data.obj
+get_b_tag <- function(blim){
+  if(!blim == 1){
+    btag <- paste0("_b", str_replace(blim, "[.]", "_"))
+  }else{
+    btag <- ""
+  }
+  btag
 }
 
 get_var_tag <- function(X.sigma, rho){
