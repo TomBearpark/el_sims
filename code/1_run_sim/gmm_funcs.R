@@ -97,13 +97,15 @@ est.GMM <- function(data, type = "twoStep", init = NULL) {
     
     moments <- moments_two_step
     est <- gel(g = moments, x = data, tet0 = init, type = "CUE", 
-               optfct="nlminb", control=list(iter.max=iter.max)) 
+               optfct="nlminb", control=list(iter.max=iter.max), 
+               maxiterlam = 1000) 
     converge <- est$conv_par
   
   } else if (type == "EL"){
     moments <- moments_two_step
     est <- gel(g = moments, x = data, tet0 = init, type = "EL", 
-               optfct="nlminb", control=list(iter.max=iter.max)) 
+               optfct="nlminb", control=list(iter.max=iter.max), 
+               maxiterlam = 1000) 
     converge <- est$conv_par
   }
   # End the timer

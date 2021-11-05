@@ -20,23 +20,25 @@ tab_loc <- file.path(code_dir, "out/")
 
 ### Load the data 
 
-load_data <- function(k, n, X.sigma, rho = 0, tab_loc){
-  ndraws <- 1000
+load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1){
+  
+  ndraws  <- 1000
+  btag    <- get_b_tag(blim)
   var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
-  file    <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,".csv")
+  file    <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,btag,".csv")
   
   df      <- read_csv(file.path(tab_loc, "coefs/", file))
   conv    <- read_csv(file.path(tab_loc, "converge/", file))
   times   <- read_csv(file.path(tab_loc, "times/", file))
   
   df %>% 
-    mutate(across(ml:el, ~(.x-beta)/beta)) %>% 
+    mutate(across(ml:el, ~(.x-beta))) %>%
     pivot_longer(cols = ml:el, values_to = "bias", names_to = "estimator") %>% 
     left_join(pivot_longer(conv, ml:el, names_to = "estimator", 
                            values_to = "converge")) %>% 
     left_join(pivot_longer(times, ml:el, names_to = "estimator", 
                            values_to = "time")) %>% 
-    mutate(k = !!k, n = !!n, x_var = !!var_tag)
+    mutate(k = !!k, n = !!n, x_var = !!var_tag, blim = btag)
 }
 
 plot_results <- function(df, var_name){
@@ -47,22 +49,48 @@ plot_results <- function(df, var_name){
     ggtitle(paste0("Estimated coefs mins the real values, X.sigma = ", var_name))
 }
 
+rmse_tab <- function(df){
+  df  %>% 
+    mutate(sq_error = bias^2) %>% 
+    group_by(estimator, k) %>% 
+    summarize(rmse = sqrt(mean(sq_error)))
+}
 
 ### Make some plots... 
-df <- map_dfr(c(5), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
-plot_results(df, "I")
+df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
 
-df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)
+df %>% 
+  # filter(abs(bias) < 2) %>% 
+  rmse_tab()  %>% 
+  ggplot() + 
+    geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
+
+df %>%
+  plot_results("I")
+
+df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)
 plot_results(df, "decay .5")
 
-df <- map_dfr(c(5, 10, 12), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
+df %>% 
+  rmse_tab()  %>% 
+  # filter(estimator != "cue") %>% 
+  ggplot() + 
+  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
+
+
+df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
 plot_results(df, "decay .9")
+
+df %>% rmse_tab()  %>% 
+  filter(estimator != "cue") %>%
+  ggplot() + 
+  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
 
 df %>% 
   select(i, var, estimator, converge, bias, k) %>% 
   pivot_wider(id_cols = -k, names_from = k, values_from = bias, names_prefix = "k_") %>%
   group_by(estimator, converge) %>%
-  tally()
+  tally() %>% arrange(n)
 
 
 df
