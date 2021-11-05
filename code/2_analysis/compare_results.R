@@ -20,12 +20,14 @@ tab_loc <- file.path(code_dir, "out/")
 
 ### Load the data 
 
-load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1){
+load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1, fix_beta = FALSE){
   
-  ndraws  <- 1000
-  btag    <- get_b_tag(blim)
-  var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
-  file    <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag ,btag,".csv")
+  ndraws   <- 1000
+  var_tag  <- get_var_tag(X.sigma = X.sigma, rho = rho)
+  btag     <- get_b_tag(blim)
+  beta_tag <- get_beta_tag(fix_beta)
+  
+  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag, btag, beta_tag, ".csv")
   
   df      <- read_csv(file.path(tab_loc, "coefs/", file))
   conv    <- read_csv(file.path(tab_loc, "converge/", file))
@@ -57,6 +59,21 @@ rmse_tab <- function(df){
 }
 
 ### Make some plots... 
+df <- map_dfr(c(5), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc) %>% mutate(beta = "uniform")
+df1 <- map_dfr(c(5), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc, fix_beta = TRUE) %>% mutate(beta = "fixed = 1")
+
+df1 %>% 
+  filter(estimator != "cue") %>% 
+  rmse_tab() %>% ggplot() + 
+  geom_col(aes(x = estimator, y = rmse)) 
+
+df %>% 
+  bind_rows(df1) %>% 
+  plot_results("diagish 0.5") + facet_wrap(vars(beta, estimator), nrow = 2)
+
+
+
+
 df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
 
 df %>% 
@@ -77,6 +94,19 @@ df %>%
   ggplot() + 
   geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
 
+
+map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc) %>% 
+  plot_results("diagish 0.5")
+
+map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "diagish",rho = 0.9, tab_loc = tab_loc) %>% 
+  plot_results("diagish 0.9")
+
+
+df   %>% 
+  filter(converge == 0) %>%
+  rmse_tab() %>% 
+  ggplot() + 
+  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
 
 df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
 plot_results(df, "decay .9")
