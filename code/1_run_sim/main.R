@@ -118,7 +118,7 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 # Local testing... 
 n <- 1000
-for(k in c(2, 5, 10)){
+for(k in c(5, 10)){
   run_study(n = n, k = k, X.sigma = "diagish", 
             ndraws = 1000, ncores = 50, rho = 0.5, fix_beta = TRUE)
 }
