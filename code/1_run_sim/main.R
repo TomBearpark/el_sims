@@ -120,8 +120,8 @@ for(k in c(5, 10)){
 #   run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
 #   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
 #   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-  run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
+  run_study(n = 1000, k = k, X.sigma = "diagish", rho = 0.9, ndraws = 1000, ncores = 50)
+  run_study(n = 1000, k = k, X.sigma = "diagish", rho = 0.5, ndraws = 1000, ncores = 50)
 }
 
 
