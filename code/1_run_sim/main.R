@@ -28,14 +28,12 @@ source(file.path(dir, "code/1_run_sim/gmm_funcs.R"))
 ###############################################################################
 seed <- 8894; set.seed(seed)
 
-n <- 1000
-k <- 10
-
 run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim, 
-                    write_fail = FALSE){
+                    write_fail = FALSE, fix_beta = FALSE){
   print(i)
   
-  data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho, blim = blim)
+  data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho, 
+                       blim = blim, fix_beta = fix_beta)
   data.df <- data.obj$df
   beta <- data.obj$model.specs$beta
   
@@ -79,27 +77,32 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim,
          cue = cue$beta.hat,
          el = el$beta.hat) 
   
-  if(sum(fails[,-1])&write_fail){
-    write_csv(data.obj$df, file = paste0(tab_loc, "failed_data/data_obj",i,".csv"))
-    write_csv(tibble(beta), file = paste0(tab_loc, "failed_data/beta",i,".csv"))
-  }
+  # if(sum(fails[,-1])&write_fail){
+  #   write_csv(data.obj$df, file = paste0(tab_loc, "failed_data/data_obj",i,".csv"))
+  #   write_csv(tibble(beta), file = paste0(tab_loc, "failed_data/beta",i,".csv"))
+  # }
   
   return(list(times = times, fails = fails, coefs = coefs))
 }
 
 run_study <- function(n, k, X.sigma, rho = 0, 
-                      ncores = 50, ndraws = 1000, seed = 8894, blim = 1){
+                      ncores = 50, ndraws = 1000, seed = 8894, blim = 1, 
+                      fix_beta = FALSE){
   
   # Tag for file names
   var_tag <- get_var_tag(X.sigma = X.sigma, rho = rho)
   btag <- get_b_tag(blim)
-  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag,btag ,".csv")
+  beta_tag <- get_beta_tag(fix_beta)
+  
+  file <- paste0("sim", ndraws, "_k", k, "_n", n, var_tag, btag, beta_tag, ".csv")
+  
   
   # Set up parallel compute
   message(file)
   plan(multisession, workers = ncores)
   results <- future_map(1:ndraws, run_sim, k = k, n = n, 
-                            X.sigma = X.sigma, rho = rho, blim = blim,
+                            X.sigma = X.sigma, rho = rho, blim = blim, 
+                            fix_beta = fix_beta, 
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
   
@@ -112,18 +115,32 @@ run_study <- function(n, k, X.sigma, rho = 0,
   write_csv(converge, file = file.path(tab_loc, "converge/", file))
 }
 
-# Run stuff... 
-# run_study(n = 1000, k = k, X.sigma = "diagish", ndraws = 1, ncores = 1, rho = 0.5)
-# run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1, ncores = 1, blim = 0.5)
 
-for(k in c(5, 10)){
-#   run_study(n = 1000, k = k, X.sigma = "I", ndraws = 1000, ncores = 50)
-#   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.5, ndraws = 1000, ncores = 50)
-#   run_study(n = 1000, k = k, X.sigma = "decay", rho = 0.9, ndraws = 1000, ncores = 50)
-  run_study(n = 1000, k = k, X.sigma = "diagish", rho = 0.9, ndraws = 1000, ncores = 50)
-  run_study(n = 1000, k = k, X.sigma = "diagish", rho = 0.5, ndraws = 1000, ncores = 50)
+# Local testing... 
+n <- 1000
+for(k in c(2, 5, 10)){
+  run_study(n = n, k = k, X.sigma = "diagish", 
+            ndraws = 1000, ncores = 50, rho = 0.5, fix_beta = TRUE)
 }
 
+
+
+# Run stuff on the server... 
+full_run <- FALSE
+
+if(full_run){
+  ndraws <- 5000
+  ncores <- 50
+  n      <- 1000
+  
+  for(k in c(2, 5, 10)){
+    run_study(n = n, k = k, X.sigma = "I", ndraws = ndraws, ncores = ncores)
+    for(rho in c(0.5, 0.9)){
+      run_study(n = n, k = k, X.sigma = "decay",   rho = rho, ndraws = ndraws, ncores = ncores)  
+      run_study(n = n, k = k, X.sigma = "diagish", rho = rho, ndraws = ndraws, ncores = ncores)
+    }
+  }
+}
 
 
 

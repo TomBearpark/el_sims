@@ -10,8 +10,8 @@ gen_sigma_less_fancy <- function(k, rho){
   sigma
 }
 
-gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE, 
-                     X.mu = NULL, X.sigma = "I", rho = 0, blim = 1){
+gen_data <- function(k = 10, n = 1000, constant = TRUE, 
+                     X.mu = NULL, X.sigma = "I", rho = 0, blim = 1, fix_beta = FALSE){
   
   if(X.sigma == "I") {
     message ("using identity covariance matrix for X")
@@ -27,7 +27,11 @@ gen_data <- function(beta = NULL, k = 10, n = 1000, constant = TRUE,
   }
   
   # If not specified the true betas are drawn from a uniform on [-1,1]
-  if (is.null(beta)) beta <- runif(k, min = -blim, max = blim) 
+  if (fix_beta == FALSE) {
+    beta <- runif(k, min = -blim, max = blim) 
+  }else{
+    beta <- rep(1, k)
+  }
   
   # and centered on 0
   if (is.null(X.mu)) X.mu <- rep(0,k)
@@ -96,4 +100,14 @@ get_var_tag <- function(X.sigma, rho){
     stop("Didn't implement this X.sigma, cheeky!")
   }
   var_tag
+}
+
+
+get_beta_tag <- function(fix_beta){
+  if (fix_beta) {
+    beta_tag <- "_beta1" 
+  }else {
+    beta_tag <- ""
+  }
+  beta_tag
 }
