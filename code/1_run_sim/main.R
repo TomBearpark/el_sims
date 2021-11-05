@@ -127,7 +127,7 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 
 # Run stuff on the server... 
-full_run <- FALSE
+full_run <- TRUE
 
 if(full_run){
   ndraws <- 5000
