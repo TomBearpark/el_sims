@@ -1,3 +1,6 @@
+###########################################################################
+### Set up and paths 
+
 ## Load stuff
 if(!require(pacman)) install.packages('pacman')
 pacman::p_load('tidyverse')
@@ -14,15 +17,21 @@ if( user == "tombearpark"){
   code_dir <- 'D:\\Dropbox\\Università\\PhD\\II Year\\Fall\\ECO519 - Non-linear Econometrics\\psets\\el_sims\\'
 } 
 
+tab_loc <- file.path(code_dir, "out/")
+out     <- file.path(code_dir, "results/")
+
+fig_out <- file.path(out, "fig/")
+tab_out <- file.path(out, "tab/")
+  
+# Source some functions 
 source(file.path(code_dir, "code/1_run_sim/funs.R"))
 
-tab_loc <- file.path(code_dir, "out/")
+###########################################################################
+### 1. Functions 
 
-### Load the data 
-
-load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1, fix_beta = FALSE){
+load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1, 
+                      ndraws = 5000, fix_beta = FALSE){
   
-  ndraws   <- 1000
   var_tag  <- get_var_tag(X.sigma = X.sigma, rho = rho)
   btag     <- get_b_tag(blim)
   beta_tag <- get_beta_tag(fix_beta)
@@ -35,92 +44,145 @@ load_data <- function(k, n, X.sigma, rho = 0, tab_loc, blim = 1, fix_beta = FALS
   
   df %>% 
     mutate(across(ml:el, ~(.x-beta))) %>%
-    pivot_longer(cols = ml:el, values_to = "bias", names_to = "estimator") %>% 
+    pivot_longer(cols = ml:el, values_to = "error", names_to = "estimator") %>% 
     left_join(pivot_longer(conv, ml:el, names_to = "estimator", 
                            values_to = "converge")) %>% 
     left_join(pivot_longer(times, ml:el, names_to = "estimator", 
                            values_to = "time")) %>% 
-    mutate(k = !!k, n = !!n, x_var = !!var_tag, blim = btag)
+    mutate(k = !!k, n = !!n, x_var = !!var_tag, blim = btag, rho = rho) %>% 
+    mutate(estimator = factor(estimator, levels = c("ml", "mom", "gmm", "cue", "el"))) %>% 
+    mutate(covar = factor(var, levels = paste0("x", 1:k)))
 }
 
-plot_results <- function(df, var_name){
-  ggplot(df) +
-    geom_density(aes(x = bias, color = var)) +
-    xlim(c(-1, 1)) +
-    facet_wrap(vars(estimator, k), scales = "free", nrow = 5) + 
-    ggtitle(paste0("Estimated coefs mins the real values, X.sigma = ", var_name))
+plot_results <- function(df, var_name, scales = "free", xlim = TRUE){
+  p <- ggplot(df) +
+    geom_density(aes(x = error, color = covar, group = covar)) +
+    facet_wrap(vars(estimator, k), scales = scales, nrow = 5) + 
+    ggtitle(paste0("Estimated coefs minus the real values, X.sigma = ", var_name))
+  if(xlim) p <- p + xlim(c(-1, 1))
+  p
 }
+
+# mean-bias, median-bias, standard deviation, 
+# median absolute di§erence from the median, 
+# root mean squared error, and median absolute error.
 
 rmse_tab <- function(df){
   df  %>% 
-    mutate(sq_error = bias^2) %>% 
-    group_by(estimator, k) %>% 
-    summarize(rmse = sqrt(mean(sq_error)))
+    mutate(sq_error = error^2) %>% 
+    group_by(estimator, k, x_var) %>% 
+    summarize(rmse = sqrt(mean(sq_error)), 
+              mean_bias = mean(error), 
+              median_bias = median(error), 
+              sd = sd(error), 
+              mae = median(abs(error)))
 }
 
-### Make some plots... 
-df <- map_dfr(c(5), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc) %>% mutate(beta = "uniform")
-df1 <- map_dfr(c(5), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc, fix_beta = TRUE) %>% mutate(beta = "fixed = 1")
+load_all_k <- function(k_list, n, X.sigma, rho, tab_loc){
+  map_dfr(k_list, load_data, n = n, X.sigma = X.sigma, rho = rho, tab_loc = tab_loc) 
+}
 
-df1 %>% 
-  filter(estimator != "cue") %>% 
-  rmse_tab() %>% ggplot() + 
-  geom_col(aes(x = estimator, y = rmse)) 
+get_opts <- function(k_list, X.sigma_list, rho_list){
+  expand_grid(k = k_list, X.sigma = X.sigma_list, rho = rho_list) %>% 
+    mutate(rho = ifelse(X.sigma == "I", "0", rho)) %>% distinct()
+}
+
+load_all <- function(k_list = c(2,5,10), X.sigma_list = c("I", "diagish", "decay"), 
+                       rho_list = c(.5, .9), n_draws = 5000, tab_loc){
+  opts <- 
+  pmap_dfr(opts, load_data, n =1000, tab_loc = tab_loc, ndraws = 5000)
+}
+
+sim_name <- function(X.sigma, rho){
+  if(X.sigma == "I") return("I")
+  else return(paste0(X.sigma, " ", rho))
+}
+
+bar_plot <- function(df, plot_var){
+  ggplot(df) + 
+    geom_col(aes(x = estimator, y = .data[[plot_var]])) + 
+    facet_wrap(vars(k, x_var), scales = "free", nrow = 3)
+}
+
+
+
+###########################################################################
+### 2.1 Error density plots
+
+X.sigma_list = c("I", "diagish", "decay")
+k_list = c(2,5,10)
+rho_list = c(.5, .9)
+
+opts <- get_opts(k_list = k_list, X.sigma_list = X.sigma_list, rho_list = rho_list)
+
+## Load all the data
+df <- load_all(tab_loc = tab_loc)
+
+
+## Error density plots 
+dir_out <- file.path(fig_out, "error_density/")
+dir.create(dir_out, showWarnings = FALSE)
+
+main <- opts %>% select(-k) %>% distinct()
+for(ii in 1:dim(main)[1]){
+  print(ii)
+  val <- opts[ii,]
+  X.sigma <- val$X.sigma; rho <- val$rho
+  
+  plot_df <- df %>% 
+    filter(X.sigma == !!X.sigma, rho == !!rho)  
+  
+  out_name <- sim_name(X.sigma, rho)
+  
+  p <- plot_df %>% 
+    plot_results(var_name = out_name)
+  ggsave(p, file = paste0(dir_out, out_name, ".png"), height = 7, width = 12)
+  
+  p2 <- plot_df %>% 
+    filter(converge == 0) %>% 
+    plot_results(var_name = out_name, xlim = FALSE)
+  ggsave(p2, file = paste0(dir_out, out_name, "free.png"), height = 7, width = 12)
+}
+
+###########################################################################
+### 2.2 Bar plot comparisons
+
+dir_out2 <- file.path(fig_out, "bar_comparison/")
+dir.create(dir_out2, showWarnings = FALSE)
+
+res <- df %>% rmse_tab()
+comp_vars <- names(res)[4:length(names(res))]
+
+
+for (cc in comp_vars){
+  print(cc)
+  
+  dir_outcc <- file.path(fig_out, "bar_comparison/", cc, "/")
+  dir.create(dir_outcc, showWarnings = FALSE)
+  
+  df %>% rmse_tab() %>% 
+    bar_plot(plot_var = cc) %>% 
+    ggsave(file = paste0(dir_outcc, "raw.png"), height = 7, width = 12)
+  
+  df %>% rmse_tab() %>% filter(estimator != "cue") %>% 
+    bar_plot(plot_var = cc) %>% 
+    ggsave(file = paste0(dir_outcc, "no_cue.png"), height = 7, width = 12)
+  
+  df %>% filter(between(error, -1, 1)) %>% rmse_tab()  %>% 
+    bar_plot(plot_var = cc) %>% 
+    ggsave(file = paste0(dir_outcc, "limit1_1.png"), height = 7, width = 12)
+  
+  df %>% filter(converge == 0) %>% rmse_tab()   %>% 
+    bar_plot(plot_var = cc) %>% 
+    ggsave(file = paste0(dir_outcc, "converged.png"), height = 7, width = 12)
+  
+  df %>% filter(converge == 0, estimator != "cue") %>% rmse_tab()   %>% 
+    bar_plot(plot_var = cc) %>% 
+    ggsave(file = paste0(dir_outcc, "no_cue_converged.png"), height = 7, width = 12)
+}
 
 df %>% 
-  bind_rows(df1) %>% 
-  plot_results("diagish 0.5") + facet_wrap(vars(beta, estimator), nrow = 2)
+  rmse_tab() %>%
+  write_csv(file = paste0(dir_out2, "raw.csv"))
 
 
-
-
-df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "I", tab_loc = tab_loc)
-
-df %>% 
-  # filter(abs(bias) < 2) %>% 
-  rmse_tab()  %>% 
-  ggplot() + 
-    geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
-
-df %>%
-  plot_results("I")
-
-df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "decay",rho = 0.5, tab_loc = tab_loc)
-plot_results(df, "decay .5")
-
-df %>% 
-  rmse_tab()  %>% 
-  # filter(estimator != "cue") %>% 
-  ggplot() + 
-  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
-
-
-map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "diagish",rho = 0.5, tab_loc = tab_loc) %>% 
-  plot_results("diagish 0.5")
-
-map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "diagish",rho = 0.9, tab_loc = tab_loc) %>% 
-  plot_results("diagish 0.9")
-
-
-df   %>% 
-  filter(converge == 0) %>%
-  rmse_tab() %>% 
-  ggplot() + 
-  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
-
-df <- map_dfr(c(5, 10), load_data, n = 1000, X.sigma = "decay",rho = 0.9, tab_loc = tab_loc)
-plot_results(df, "decay .9")
-
-df %>% rmse_tab()  %>% 
-  filter(estimator != "cue") %>%
-  ggplot() + 
-  geom_col(aes(x = estimator, y = rmse)) + facet_wrap(~k, scales = "free")
-
-df %>% 
-  select(i, var, estimator, converge, bias, k) %>% 
-  pivot_wider(id_cols = -k, names_from = k, values_from = bias, names_prefix = "k_") %>%
-  group_by(estimator, converge) %>%
-  tally() %>% arrange(n)
-
-
-df
