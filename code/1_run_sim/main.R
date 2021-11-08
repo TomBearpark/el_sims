@@ -31,9 +31,10 @@ seed <- 8894; set.seed(seed)
 run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim, 
                     write_fail = FALSE, fix_beta = FALSE){
   print(i)
-  
+
   data.obj <- gen_data(k = k, n = n, X.sigma = X.sigma, rho = rho, 
                        blim = blim, fix_beta = fix_beta)
+  
   data.df <- data.obj$df
   beta <- data.obj$model.specs$beta
   
@@ -83,6 +84,7 @@ run_sim <- function(i, k, n, X.sigma = "I", rho = NULL, blim,
   # }
   
   return(list(times = times, fails = fails, coefs = coefs))
+  
 }
 
 run_study <- function(n, k, X.sigma, rho = 0, 
@@ -106,6 +108,7 @@ run_study <- function(n, k, X.sigma, rho = 0,
                           .options = furrr_options(seed = seed), 
                           .progress = TRUE)
   
+  
   coefs <- map_dfr(1:ndraws, function(x) results[[x]]$coefs)
   times <- map_dfr(1:ndraws, function(x) results[[x]]$times)
   converge <- map_dfr(1:ndraws, function(x) results[[x]]$fails)
@@ -113,6 +116,7 @@ run_study <- function(n, k, X.sigma, rho = 0,
   write_csv(coefs, file = file.path(tab_loc, "coefs/", file))
   write_csv(times, file = file.path(tab_loc, "times/", file))
   write_csv(converge, file = file.path(tab_loc, "converge/", file))
+  
 }
 
 

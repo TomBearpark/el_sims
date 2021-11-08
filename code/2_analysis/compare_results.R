@@ -186,3 +186,8 @@ df %>%
   write_csv(file = paste0(dir_out2, "raw.csv"))
 
 
+## Lets find a bad draw, check it out a bit... 
+df %>% 
+  filter(converge == 0) %>% 
+  filter(abs(error) > 100000)  %>% 
+  write_csv(file = paste0(tab_loc, "terrible_cues.csv"))
