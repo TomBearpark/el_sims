@@ -6,13 +6,14 @@
 #
 # Generate the data JUST ONCE at the beginning
 #
-# nsim   <- 100000
-# Xdraw  <- gen_data(n = nsim)
-# Xtilde <- cross_mom(X.draw)
+# nsim    <- 100000
+# data    <- gen_data(n = nsim)
+# Xdraw   <- as.matrix(data$df[,-1])
+# Xtilde  <- cross_mom(Xdraw)
 #
 #
 # just loop over betas the following mf
-# aux <- get.aVar(Xdraw,Xtilde,beta)
+# aux <- get.aVar(Xdraw,Xtilde,data$model.specs$beta)
 #
 #
 #################
