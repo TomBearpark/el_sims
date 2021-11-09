@@ -122,9 +122,9 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 # Local testing... 
 
-n <- 1000
-run_study(n = n, k = 10, X.sigma = "diagish",
-          ndraws = 1, ncores = 1, rho = 0.5, fix_beta = TRUE)
+# n <- 1000
+# run_study(n = n, k = 10, X.sigma = "diagish",
+#           ndraws = 1, ncores = 1, rho = 0.5, fix_beta = TRUE)
 
 # for(k in c(5, 10)){
 #   run_study(n = n, k = k, X.sigma = "diagish",
@@ -136,22 +136,22 @@ run_study(n = n, k = 10, X.sigma = "diagish",
 # Run stuff on the server... 
 full_run <- FALSE
 
+
+
 if(full_run){
-  ndraws <- 5000
-  ncores <- 50
-  n      <- 1000
   
-  for(k in c(10)){
-    #run_study(n = n, k = k, X.sigma = "I", ndraws = ndraws, ncores = ncores)
+  ndraws   <- 5000
+  ncores   <- 50
+  n        <- 1000
+  fix_beta <- TRUE
+  
+  for(k in c(2, 5, 10)){
+    run_study(n = n, k = k, X.sigma = "I", ndraws = ndraws, ncores = ncores, fix_beta = fix_beta)
     for(rho in c(0.5, 0.9)){
-  #    run_study(n = n, k = k, X.sigma = "decay",   rho = rho, ndraws = ndraws, ncores = ncores)  
- #     run_study(n = n, k = k, X.sigma = "diagish", rho = rho, ndraws = ndraws, ncores = ncores)
+      run_study(n = n, k = k, X.sigma = "decay",   rho = rho, ndraws = ndraws, ncores = ncores, fix_beta = fix_beta)  
+      run_study(n = n, k = k, X.sigma = "diagish", rho = rho, ndraws = ndraws, ncores = ncores, fix_beta = fix_beta)
     }
   }
-  k <- 10
-  rho <- 0.9
-  #run_study(n = n, k = k, X.sigma = "decay",   rho = rho, ndraws = ndraws, ncores = ncores)  
-  run_study(n = n, k = k, X.sigma = "diagish", rho = rho, ndraws = ndraws, ncores = ncores)
 }
 
 

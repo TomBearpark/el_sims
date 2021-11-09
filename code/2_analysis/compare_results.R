@@ -3,7 +3,7 @@
 
 ## Load stuff
 if(!require(pacman)) install.packages('pacman')
-pacman::p_load('tidyverse')
+pacman::p_load('tidyverse', 'latex2exp')
 theme_set(theme_bw())
 
 # Set directories
@@ -89,7 +89,7 @@ get_opts <- function(k_list, X.sigma_list, rho_list){
 
 load_all <- function(k_list = c(2,5,10), X.sigma_list = c("I", "diagish", "decay"), 
                        rho_list = c(.5, .9), n_draws = 5000, tab_loc){
-  opts <- 
+  opts <- get_opts(k_list = k_list, X.sigma_list = X.sigma_list, rho_list = rho_list)
   pmap_dfr(opts, load_data, n =1000, tab_loc = tab_loc, ndraws = 5000)
 }
 
@@ -99,9 +99,19 @@ sim_name <- function(X.sigma, rho){
 }
 
 bar_plot <- function(df, plot_var){
+  
+  df$lab2 <- factor(df$x_var, levels = c("", "_decay_rho0_5", "_decay_rho0_9",
+                                  "_diagish_rho0_5", "_diagish_rho0_9"), 
+                      labels = c("I", TeX("$\\Xi_{0.5}$"), TeX("$\\Xi_{0.9}$"), 
+                                 TeX("$\\Sigma_{0.5}$"), TeX("$\\Sigma_{0.9}$")))
+  
+  df$lab1 <- factor(df$k, levels = c(2, 5, 10), 
+                   labels = c(TeX("$k=2$"), TeX("$k=5$"), TeX("$k=10$")))
+  
   ggplot(df) + 
     geom_col(aes(x = estimator, y = .data[[plot_var]])) + 
-    facet_wrap(vars(k, x_var), scales = "free", nrow = 3)
+    facet_wrap(vars(lab1, lab2), scales = "free", labeller = "label_parsed", 
+               nrow = 3)
 }
 
 
@@ -109,9 +119,9 @@ bar_plot <- function(df, plot_var){
 ###########################################################################
 ### 2.1 Error density plots
 
-X.sigma_list = c("I", "diagish", "decay")
-k_list = c(2,5,10)
-rho_list = c(.5, .9)
+X.sigma_list <- c("I", "diagish", "decay")
+k_list       <- c(2,5,10)
+rho_list     <- c(.5, .9)
 
 opts <- get_opts(k_list = k_list, X.sigma_list = X.sigma_list, rho_list = rho_list)
 
@@ -152,6 +162,10 @@ dir.create(dir_out2, showWarnings = FALSE)
 
 res <- df %>% rmse_tab()
 comp_vars <- names(res)[4:length(names(res))]
+
+
+cc <- comp_vars[1]
+df %>% rmse_tab() %>% bar_plot("rmse")
 
 
 for (cc in comp_vars){
