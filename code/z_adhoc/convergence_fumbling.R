@@ -47,16 +47,31 @@ D_mom_tom <- function(theta, data){
   D
 }
 
-k <- 10
-data.obj <- gen_data(k = k, n = 1000, X.sigma = "I", rho = 0)
-data <- data.obj$df
-beta <- data.obj$model.specs$beta
+
 
 D_mom(theta = beta, data = data)
 D_mom_tom(theta = beta, data = data)
 
 
-init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
+k <- 10
+b <- 0
+while(b<500){
+  data.obj <- gen_data(k = k, n = 1000, X.sigma = "decay", rho = 0.5)
+  data <- data.obj$df
+  beta <- data.obj$model.specs$beta
+  init <- lm(y ~ . - 1, data)$coefficients %>% as.matrix()  
+  moments <- moments_two_step
+  est <- gel(g = moments, x = data, tet0 = init, type = "CUE", 
+             optfct="nlminb", control=list(iter.max=1000), 
+             maxiterlam = 1000) 
+  b <- max(abs(est$coefficients))
+}
+
+
+
+
+
+
 
 ## See how convergence is looking... 
 

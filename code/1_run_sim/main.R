@@ -122,16 +122,19 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 # Local testing... 
 
-# n <- 1000
+n <- 1000
+run_study(n = n, k = 10, X.sigma = "diagish",
+          ndraws = 1, ncores = 1, rho = 0.5, fix_beta = TRUE)
+
 # for(k in c(5, 10)){
-#   run_study(n = n, k = k, X.sigma = "diagish", 
+#   run_study(n = n, k = k, X.sigma = "diagish",
 #             ndraws = 1000, ncores = 50, rho = 0.5, fix_beta = TRUE)
 # }
 
 
 
 # Run stuff on the server... 
-full_run <- TRUE
+full_run <- FALSE
 
 if(full_run){
   ndraws <- 5000
