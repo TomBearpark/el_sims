@@ -32,7 +32,7 @@ gen_data <- function(k = 10, n = 1000, constant = TRUE,
   }else{
     beta <- rep(1, k)
   }
-  
+ 	beta <- matrix(beta) 
   # and centered on 0
   if (is.null(X.mu)) X.mu <- rep(0,k)
   

@@ -134,18 +134,18 @@ run_study <- function(n, k, X.sigma, rho = 0,
 
 
 # Run stuff on the server... 
-full_run <- FALSE
+full_run <- TRUE
 
 
 
 if(full_run){
   
-  ndraws   <- 5000
+  ndraws   <- 1000
   ncores   <- 50
   n        <- 1000
   fix_beta <- TRUE
   
-  for(k in c(2, 5, 10)){
+  for(k in c(10)){
     run_study(n = n, k = k, X.sigma = "I", ndraws = ndraws, ncores = ncores, fix_beta = fix_beta)
     for(rho in c(0.5, 0.9)){
       run_study(n = n, k = k, X.sigma = "decay",   rho = rho, ndraws = ndraws, ncores = ncores, fix_beta = fix_beta)  
