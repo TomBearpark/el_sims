@@ -80,7 +80,7 @@ rmse_tab <- function(df){
 }
 
 load_all_k <- function(k_list, n, X.sigma, rho, tab_loc, fix_beta = FALSE){
-  map_dfr(k_list, load_data, n = n, X.sigma = X.sigma, rho = rho, tab_loc = tab_loc, F
+  map_dfr(k_list, load_data, n = n, X.sigma = X.sigma, rho = rho, tab_loc = tab_loc, 
           fix_beta = fix_beta) 
 }
 
@@ -127,7 +127,6 @@ bar_plot <- function(df, plot_var){
     xlab("")
 }
 
-r %>% filter(estimator != "cue") %>% bar_plot("rmse")
 
 add_table_labs <- function(df){
   df$`X distribution` <- case_when(
