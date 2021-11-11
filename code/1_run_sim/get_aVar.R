@@ -22,10 +22,14 @@
 # Main Function
 get.aVar <- function(X.draw,X.tilde.draw,beta) {
   # Asymptotic Variance of MLE
+  message("------mle-----------")
+  
   mle <- avar.mle(X = X.draw, beta = beta)
+  message("------mom-----------")
   # Asymptotic Variance of MoM
   mom <- avar.mom(X = X.draw, beta = beta)
   # Asymptotic Variance of GMM/CUE/EL
+  message("------gmm-----------")
   gmm <- avar.gmm(X = X.draw, XX = X.tilde.draw, beta = beta)
   
   return(list(aVar.mle = mle,
@@ -47,9 +51,13 @@ avar.mle <-  function(X, beta) {
     xi <- X[s,]
     xb <- sum(xi*beta)
     
+    if(pnorm(xb) %in% c(0,1)) next
+    
     varcov <- (dnorm(xb)^2/(pnorm(xb)*(1-pnorm(xb))))*xi%*%t(xi)
+    
     store <- varcov + store    
   }  
+  
   avar <- solve(store/sims)
   
   return(diag(avar))
@@ -66,7 +74,7 @@ avar.mom <- function(X,beta) {
     xb  <- sum(xi*beta)
     Phi <- pnorm(xb)
     xx  <- xi%*%t(xi)
-
+    if(dnorm(xb) %in% c(0,1)) next
     G <- dnorm(xb)*xx
     V <- Phi*(1-Phi)*xx
     
@@ -112,6 +120,7 @@ avar.gmm <- function(X,XX,beta) {
     xitil <- XX[s,]
     xb    <- sum(xi*beta)
     Phi <- pnorm(xb)
+    if(pnorm(xb) %in% c(0,1)) next
     xx  <- xitil%*%t(xi)
     
     G <- dnorm(xb)*xx
